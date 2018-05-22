@@ -57,11 +57,7 @@ class UserService @Inject() (
   }
 
   private def whenEnabled[T](body: => Future[Either[ErrorInfo, UserDetails]])(implicit ec: ExecutionContext): Future[Either[ErrorInfo, Option[UserDetails]]] =
-    if (enabled) {
       EitherT(body).map(Some.apply).value
-    } else {
-      Future successful Right(None)
-    }
 
   private def userDetails(nino: Nino, state: UserState.Value)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UserDetails] = {
     val accountFEO: Future[Either[ErrorInfo, Option[Account]]] = if (state == UserState.Enrolled && anyAccountFeatureEnabled) {

@@ -76,18 +76,6 @@ class UserServiceSpec extends UnitSpec with MockFactory with OptionValues with E
   )
 
   "userDetails" should {
-    "return Right(None) and not call the connector when Help to Save is not enabled" in {
-      val service = new UserServiceWithTestDefaults(
-        shouldNotBeCalledInvitationEligibilityService,
-        shouldNotBeCalledHelpToSaveConnector,
-        ShouldNotUpdateInvitationMetrics,
-        ShouldNotBeCalledInvitationRepository,
-        enabled = false
-      )
-
-      await(service.userDetails(internalAuthId, nino)) shouldBe Right(None)
-    }
-
     "return state=Enrolled when the current user is enrolled in Help to Save, even if they are eligible to be invited" in {
       val service = new UserServiceWithTestDefaults(
         fakeInvitationEligibilityService(nino, eligible = Right(true)),

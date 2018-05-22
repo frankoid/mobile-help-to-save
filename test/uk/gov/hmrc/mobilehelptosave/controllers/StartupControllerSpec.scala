@@ -29,15 +29,13 @@ import uk.gov.hmrc.mobilehelptosave.services.UserService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class StartupControllerSpec extends WordSpec with Matchers with MockFactory with OneInstancePerTest with FutureAwaits with DefaultAwaitTimeout {
+class StartupControllerSpec extends WordSpec with Matchers with MockFactory with FutureAwaits with DefaultAwaitTimeout {
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   private val generator = new Generator(0)
   private val nino = generator.nextNino
   private val internalAuthId = InternalAuthId("some-internal-auth-id")
-
-  private val mockUserService = mock[UserService]
 
   private class AlwaysAuthorisedWithIds(id: InternalAuthId, nino: Nino) extends AuthorisedWithIds {
     override protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithIds[A]]] =
@@ -61,6 +59,7 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
 
   "startup" should {
     "pass internalAuthId and NINO obtained from auth into userService" in {
+      val mockUserService = mock[UserService]
 
       (mockUserService.userDetails(_: InternalAuthId, _: Nino)(_: HeaderCarrier, _: ExecutionContext))
         .expects(internalAuthId, nino, *, *)
@@ -106,6 +105,12 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
 
   "startup" when {
     "helpToSaveEnabled = true and helpToSaveShuttered = false" should {
+      val mockUserService = mock[UserService]
+
+      (mockUserService.userDetails(_: InternalAuthId, _: Nino)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(internalAuthId, nino, *, *)
+        .returning(Future successful Right(Some(testUserDetails.copy(state = UserState.Invited))))
+
       val controller = new StartupController(
         mockUserService,
         new AlwaysAuthorisedWithIds(internalAuthId, nino),
@@ -124,10 +129,6 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
         val generator = new Generator(0)
         val nino = generator.nextNino
 
-        (mockUserService.userDetails(_: InternalAuthId, _: Nino)(_: HeaderCarrier, _: ExecutionContext))
-          .expects(internalAuthId, nino, *, *)
-          .returning(Future successful Right(Some(testUserDetails.copy(state = UserState.Invited))))
-
         val resultF = controller.startup(FakeRequest())
         status(resultF) shouldBe 200
         val jsonBody = contentAsJson(resultF)
@@ -139,10 +140,6 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
       }
 
       "include shuttering information in response with shuttered = false" in {
-        (mockUserService.userDetails(_: InternalAuthId, _: Nino)(_: HeaderCarrier, _: ExecutionContext))
-          .expects(internalAuthId, nino, *, *)
-          .returning(Future successful Right(Some(testUserDetails.copy(state = UserState.Invited))))
-
         val resultF = controller.startup(FakeRequest())
         status(resultF) shouldBe 200
         val jsonBody = contentAsJson(resultF)
@@ -151,6 +148,8 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
     }
 
     "there is an error getting user details" should {
+      val mockUserService = mock[UserService]
+
       val controller = new StartupController(
         mockUserService,
         new AlwaysAuthorisedWithIds(internalAuthId, nino),
@@ -186,6 +185,8 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
     }
 
     "helpToSaveEnabled = false" should {
+      val mockUserService = mock[UserService]
+
       val controller = new StartupController(
         mockUserService,
         new AlwaysAuthorisedWithIds(internalAuthId, nino),
@@ -200,7 +201,7 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
         helpToSaveInvitationUrl = "/invitation",
         helpToSaveAccessAccountUrl = "/accessAccount")
 
-      "omit URLs and user from response" in {
+      "not call mockUserService and omit URLs and user from response" in {
         val resultF = controller.startup(FakeRequest())
         status(resultF) shouldBe 200
         val jsonBody = contentAsJson(resultF)
@@ -213,6 +214,8 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
     }
 
     "helpToSaveShuttered = true" should {
+      val mockUserService = mock[UserService]
+
       val controller = new StartupController(
         mockUserService,
         ShouldNotBeCalledAuthorisedWithIds,
@@ -248,8 +251,6 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
       }
 
       "continue to include feature flags because some of them take priority over shuttering" in {
-        val mockUserService = mock[UserService]
-
         val resultF = controller.startup(FakeRequest())
         status(resultF) shouldBe 200
         val jsonBody = contentAsJson(resultF)
@@ -263,6 +264,8 @@ class StartupControllerSpec extends WordSpec with Matchers with MockFactory with
     }
 
     "helpToSaveShuttered = true and a different title and message are passed in" should {
+      val mockUserService = mock[UserService]
+
       val controller = new StartupController(
         mockUserService,
         ShouldNotBeCalledAuthorisedWithIds,
