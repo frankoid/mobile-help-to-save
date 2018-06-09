@@ -8,6 +8,7 @@ lazy val root = (project in file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
+  .settings(addCommandAlias("testAll", ";clean;reload;update;test;it:test"))
 
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
@@ -38,7 +39,7 @@ evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScala
 unmanagedSourceDirectories in Test += baseDirectory.value / "testcommon"
 
 Keys.fork in IntegrationTest := false
-unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(
+unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest) (base => Seq(
   base / "it",
   base / "testcommon"
 )).value
@@ -50,3 +51,5 @@ resolvers ++= Seq(
   Resolver.bintrayRepo("hmrc", "releases"),
   Resolver.jcenterRepo
 )
+
+
