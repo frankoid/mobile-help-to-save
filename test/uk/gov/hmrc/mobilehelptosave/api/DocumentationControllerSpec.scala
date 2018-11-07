@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.mobilehelptosave.api
 
+import controllers.{AssetsConfiguration, DefaultAssetsMetadata}
 import org.scalatest.{Matchers, WordSpec}
 import play.api.http.LazyHttpErrorHandler
 import play.api.mvc.Result
+import play.api.test.Helpers.stubControllerComponents
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 import uk.gov.hmrc.mobilehelptosave.config.DocumentationControllerConfig
 
@@ -27,7 +29,10 @@ class DocumentationControllerSpec
     with FutureAwaits with DefaultAwaitTimeout  {
   "definition" should {
     "have content type = application/json" in {
-      val controller = new DocumentationController(LazyHttpErrorHandler, TestDocumentationControllerConfig)
+      val cc = stubControllerComponents()
+      val stubAssetsMetadata = new DefaultAssetsMetadata(AssetsConfiguration(), _ => None, cc.fileMimeTypes)
+      val controller = new DocumentationController(LazyHttpErrorHandler, TestDocumentationControllerConfig, cc, stubAssetsMetadata)
+
       val result: Result = await(controller.definition()(FakeRequest()))
       result.body.contentType shouldBe Some("application/json")
     }

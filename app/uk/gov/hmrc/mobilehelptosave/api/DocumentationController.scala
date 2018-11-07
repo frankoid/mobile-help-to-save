@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.mobilehelptosave.api
 
+import controllers.AssetsMetadata
 import javax.inject.{Inject, Singleton}
 import play.api.http.HttpErrorHandler
 import play.api.libs.json.{Json, OWrites}
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc._
 import uk.gov.hmrc.mobilehelptosave.config.DocumentationControllerConfig
 import uk.gov.hmrc.mobilehelptosave.views.txt
 
@@ -32,12 +33,14 @@ object ApiAccess {
 @Singleton
 class DocumentationController @Inject() (
   errorHandler: HttpErrorHandler,
-  config: DocumentationControllerConfig
-) extends uk.gov.hmrc.api.controllers.DocumentationController(errorHandler) {
+  config: DocumentationControllerConfig,
+  cc: ControllerComponents,
+  meta: AssetsMetadata
+) extends uk.gov.hmrc.api.controllers.DocumentationController(errorHandler, meta) {
 
   private lazy val apiAccess = ApiAccess(config.apiAccessType, config.apiWhiteListApplicationIds)
 
-  override def definition(): Action[AnyContent] = Action {
+  override def definition(): Action[AnyContent] = cc.actionBuilder {
     Ok(txt.definition(apiAccess)).as(JSON)
   }
 }

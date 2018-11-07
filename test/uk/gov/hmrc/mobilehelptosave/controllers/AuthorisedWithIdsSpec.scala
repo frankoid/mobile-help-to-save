@@ -19,21 +19,25 @@ package uk.gov.hmrc.mobilehelptosave.controllers
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.OneInstancePerTest
+import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
 import play.api.http.Status._
-import play.api.mvc.Results
-import play.api.test.FakeRequest
+import play.api.mvc.{Result, Results}
+import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
+import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, Retrievals}
 import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mobilehelptosave.support.LoggerStub
-import uk.gov.hmrc.play.test.UnitSpec
+import play.api.test.Helpers.stubControllerComponents
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthorisedWithIdsSpec extends UnitSpec with MockFactory with OneInstancePerTest with LoggerStub with Retrievals with Results {
+class AuthorisedWithIdsSpec
+  extends WordSpec with Matchers
+    with FutureAwaits with DefaultAwaitTimeout
+    with MockFactory with OneInstancePerTest with LoggerStub with Retrievals with Results {
 
   private val generator = new Generator(0)
   private val testNino = generator.nextNino
@@ -44,7 +48,7 @@ class AuthorisedWithIdsSpec extends UnitSpec with MockFactory with OneInstancePe
     "include the NINO in the request" in {
       val authConnectorStub = authConnectorStubThatWillReturn(Some(testNino.value))
 
-      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub)
+      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub, stubControllerComponents())
 
       var capturedNino: Option[Nino] = None
       val action = authorised { request =>
@@ -59,7 +63,7 @@ class AuthorisedWithIdsSpec extends UnitSpec with MockFactory with OneInstancePe
     "return 403 when no NINO can be retrieved" in {
       val authConnectorStub = authConnectorStubThatWillReturn(None)
 
-      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub)
+      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub, stubControllerComponents())
 
       val action = authorised { _ =>
         Ok
@@ -71,7 +75,7 @@ class AuthorisedWithIdsSpec extends UnitSpec with MockFactory with OneInstancePe
     "return 401 when AuthConnector throws NoActiveSession" in {
       val authConnectorStub = authConnectorStubThatWillReturn(Future failed new NoActiveSession("not logged in") {})
 
-      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub)
+      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub, stubControllerComponents())
 
       val action = authorised { _ =>
         Ok
@@ -83,7 +87,7 @@ class AuthorisedWithIdsSpec extends UnitSpec with MockFactory with OneInstancePe
     "return 403 when AuthConnector throws any other AuthorisationException" in {
       val authConnectorStub = authConnectorStubThatWillReturn(Future failed new AuthorisationException("not authorised") {})
 
-      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub)
+      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub, stubControllerComponents())
 
       val action = authorised { _ =>
         Ok
@@ -95,15 +99,15 @@ class AuthorisedWithIdsSpec extends UnitSpec with MockFactory with OneInstancePe
     "return 403 Forbidden and log a warning when AuthConnector throws InsufficientConfidenceLevel" in {
       val authConnectorStub = authConnectorStubThatWillReturn(Future failed new InsufficientConfidenceLevel("Insufficient ConfidenceLevel") {})
 
-      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub)
+      val authorised = new AuthorisedWithIdsImpl(logger, authConnectorStub, stubControllerComponents())
 
       val action = authorised { _ =>
         Ok
       }
 
-      val result = await(action(FakeRequest()))
-      status(result) shouldBe FORBIDDEN
-      bodyOf(result) shouldBe "Authorisation failure [Insufficient ConfidenceLevel]"
+      val resultF = action(FakeRequest())
+      status(resultF) shouldBe FORBIDDEN
+      contentAsString(resultF) shouldBe "Authorisation failure [Insufficient ConfidenceLevel]"
       (slf4jLoggerStub.warn(_: String)) verify "Forbidding access due to insufficient confidence level. User will see an error screen. To fix this see NGC-3381."
     }
   }

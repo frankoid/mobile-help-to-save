@@ -41,7 +41,7 @@ class SandboxISpec extends WordSpec with Matchers
 
   "GET /savings-account/{nino}/transactions with sandbox header" should {
     "Return OK response containing valid Transactions JSON" in {
-      val response: WSResponse = await(wsUrl(s"/savings-account/$nino/transactions").withHeaders(sandboxRoutingHeader).get())
+      val response: WSResponse = await(wsUrl(s"/savings-account/$nino/transactions").addHttpHeaders(sandboxRoutingHeader).get())
       response.status shouldBe Status.OK
       response.json.validate[Transactions] shouldBe 'success
     }
@@ -49,7 +49,7 @@ class SandboxISpec extends WordSpec with Matchers
 
   "GET /savings-account/{nino} with sandbox header" should {
     "Return OK response containing valid Account JSON" in {
-      val response: WSResponse = await(wsUrl(s"/savings-account/$nino").withHeaders(sandboxRoutingHeader).get())
+      val response: WSResponse = await(wsUrl(s"/savings-account/$nino").addHttpHeaders(sandboxRoutingHeader).get())
       response.status shouldBe Status.OK
       response.json.validate[Account] shouldBe 'success
     }

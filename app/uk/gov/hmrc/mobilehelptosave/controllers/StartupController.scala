@@ -22,15 +22,16 @@ import play.api.mvc._
 import uk.gov.hmrc.mobilehelptosave.config.StartupControllerConfig
 import uk.gov.hmrc.mobilehelptosave.domain._
 import uk.gov.hmrc.mobilehelptosave.services.UserService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext.fromLoggingDetails
 
 @Singleton()
 class StartupController @Inject() (
   userService: UserService,
   authorisedWithIds: AuthorisedWithIds,
-  config: StartupControllerConfig
-) extends BaseController {
+  config: StartupControllerConfig,
+  cc: ControllerComponents
+) extends BackendController(cc) {
 
   val startup: Action[AnyContent] = if (!config.shuttering.shuttered) {
     authorisedWithIds.async { implicit request =>

@@ -19,19 +19,20 @@ package uk.gov.hmrc.mobilehelptosave.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.LoggerLike
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.mobilehelptosave.config.HelpToSaveControllerConfig
 import uk.gov.hmrc.mobilehelptosave.sandbox.SandboxData
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.Future
 
 @Singleton
 class SandboxController @Inject()(
-   logger: LoggerLike,
-   config: HelpToSaveControllerConfig,
-   sandboxData: SandboxData
- ) extends BaseController with ControllerChecks {
+  logger: LoggerLike,
+  config: HelpToSaveControllerConfig,
+  sandboxData: SandboxData,
+  cc: ControllerComponents
+) extends BackendController(cc) with ControllerChecks {
 
   def getTransactions(ninoString: String): Action[AnyContent] = Action.async { implicit request =>
     withShuttering(config.shuttering) {

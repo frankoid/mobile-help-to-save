@@ -27,18 +27,22 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext.fromLoggingDetails
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class RequestWithIds[+A](val nino: Nino, request: Request[A]) extends WrappedRequest[A](request)
 
 @ImplementedBy(classOf[AuthorisedWithIdsImpl])
-trait AuthorisedWithIds extends ActionBuilder[RequestWithIds] with ActionRefiner[Request, RequestWithIds]
+trait AuthorisedWithIds extends ActionBuilder[RequestWithIds, AnyContent] with ActionRefiner[Request, RequestWithIds]
 
 @Singleton
 class AuthorisedWithIdsImpl @Inject() (
   logger: LoggerLike,
-  authConnector: AuthConnector
+  authConnector: AuthConnector,
+  cc: ControllerComponents
 ) extends AuthorisedWithIds with Results {
+  override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
+  override protected val executionContext: ExecutionContext = cc.executionContext
+
   override protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithIds[A]]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
 

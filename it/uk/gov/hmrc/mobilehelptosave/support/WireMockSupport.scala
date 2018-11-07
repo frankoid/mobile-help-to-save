@@ -24,7 +24,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.play.it.Port
+import uk.gov.hmrc.hmrctest.it.Port
 
 case class WireMockBaseUrl(value: URL)
 

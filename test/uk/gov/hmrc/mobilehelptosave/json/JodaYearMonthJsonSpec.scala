@@ -39,7 +39,7 @@ class JodaYearMonthJsonSpec extends WordSpec with Matchers {
     }
 
     "reject badly formatted strings with an error.expected.jodayearmonth.format error" in {
-      JsString("not a yearmonth").validate[YearMonth] shouldBe JsError(ValidationError("error.expected.jodayearmonth.format"))
+      JsString("not a yearmonth").validate[YearMonth] shouldBe JsError(JsonValidationError("error.expected.jodayearmonth.format"))
     }
   }
 }

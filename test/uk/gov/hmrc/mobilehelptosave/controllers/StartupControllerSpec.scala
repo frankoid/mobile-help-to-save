@@ -19,7 +19,7 @@ package uk.gov.hmrc.mobilehelptosave.controllers
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
 import play.api.libs.json.JsObject
-import play.api.test.Helpers.{contentAsJson, status}
+import play.api.test.Helpers.{contentAsJson, status, stubControllerComponents}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -72,7 +72,8 @@ class StartupControllerSpec
       val controller = new StartupController(
         mockUserService,
         new AlwaysAuthorisedWithIds(nino),
-        config)
+        config,
+        stubControllerComponents())
 
       status(controller.startup(FakeRequest())) shouldBe 200
     }
@@ -81,7 +82,8 @@ class StartupControllerSpec
       val controller = new StartupController(
         mockUserService,
         NeverAuthorisedWithIds,
-        config)
+        config,
+        stubControllerComponents())
 
       status(controller.startup()(FakeRequest())) shouldBe 403
     }
@@ -92,7 +94,8 @@ class StartupControllerSpec
       val controller = new StartupController(
         mockUserService,
         new AlwaysAuthorisedWithIds(nino),
-        config)
+        config,
+        stubControllerComponents())
 
       "include URLs and user in response" in {
         (mockUserService.userDetails(_: Nino)(_: HeaderCarrier, _: ExecutionContext))
@@ -125,7 +128,8 @@ class StartupControllerSpec
       val controller = new StartupController(
         mockUserService,
         new AlwaysAuthorisedWithIds(nino),
-        config)
+        config,
+        stubControllerComponents())
 
       "include userError and non-user fields such as URLs response" in {
         val generator = new Generator(0)
@@ -151,7 +155,8 @@ class StartupControllerSpec
       val controller = new StartupController(
         mockUserService,
         ShouldNotBeCalledAuthorisedWithIds,
-        config.copy(shuttering = trueShuttering, paidInThisMonthEnabled = true))
+        config.copy(shuttering = trueShuttering, paidInThisMonthEnabled = true),
+        stubControllerComponents())
 
       "omit URLs and user from response, and not call UserService or AuthorisedWithIds" in {
         val resultF = controller.startup(FakeRequest())
@@ -195,7 +200,8 @@ class StartupControllerSpec
         config.copy(
           shuttering = Shuttering(shuttered = true, "something", "some message"),
           paidInThisMonthEnabled = true
-        ))
+        ),
+        stubControllerComponents())
 
       "include the passed in shuttering info in response" in {
         val resultF = controller.startup(FakeRequest())

@@ -20,14 +20,14 @@ package uk.gov.hmrc.mobilehelptosave.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.LoggerLike
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Result, Results}
+import play.api.mvc._
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mobilehelptosave.config.HelpToSaveControllerConfig
 import uk.gov.hmrc.mobilehelptosave.connectors.HelpToSaveGetTransactions
 import uk.gov.hmrc.mobilehelptosave.domain.{ErrorBody, Shuttering}
 import uk.gov.hmrc.mobilehelptosave.services.AccountService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext.fromLoggingDetails
 
 import scala.concurrent.Future
@@ -60,8 +60,9 @@ class HelpToSaveController @Inject()
   accountService: AccountService,
   helpToSaveGetTransactions: HelpToSaveGetTransactions,
   authorisedWithIds: AuthorisedWithIds,
-  config: HelpToSaveControllerConfig
-) extends BaseController with ControllerChecks  {
+  config: HelpToSaveControllerConfig,
+  cc: ControllerComponents
+) extends BackendController(cc) with ControllerChecks  {
 
   private final val AccountNotFound = NotFound(Json.toJson(ErrorBody("ACCOUNT_NOT_FOUND", "No Help to Save account exists for the specified NINO")))
 
