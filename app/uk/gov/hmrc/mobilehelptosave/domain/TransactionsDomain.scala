@@ -19,6 +19,8 @@ package uk.gov.hmrc.mobilehelptosave.domain
 import cats.Eq
 import org.joda.time.LocalDate
 import play.api.libs.json._
+import play.api.libs.json.JodaReads._
+import play.api.libs.json.JodaWrites._
 
 sealed trait Operation {
   def stringValue: String = this match {

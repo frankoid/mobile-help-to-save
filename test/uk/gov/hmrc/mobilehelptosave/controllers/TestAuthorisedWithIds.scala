@@ -16,22 +16,30 @@
 
 package uk.gov.hmrc.mobilehelptosave.controllers
 
-import play.api.mvc.{Request, Result, Results}
+import play.api.mvc._
+import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.domain.Nino
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class AlwaysAuthorisedWithIds(nino: Nino) extends AuthorisedWithIds {
+trait StubAuthorisedWithIds extends AuthorisedWithIds {
+  private val cc = stubControllerComponents()
+
+  override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
+  override protected val executionContext: ExecutionContext = cc.executionContext
+}
+
+class AlwaysAuthorisedWithIds(nino: Nino) extends StubAuthorisedWithIds {
   override protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithIds[A]]] =
     Future successful Right(new RequestWithIds(nino, request))
 }
 
-object NeverAuthorisedWithIds extends AuthorisedWithIds with Results {
+object NeverAuthorisedWithIds extends StubAuthorisedWithIds with Results {
   override protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithIds[A]]] =
     Future successful Left(Forbidden)
 }
 
-object ShouldNotBeCalledAuthorisedWithIds extends AuthorisedWithIds with Results {
+object ShouldNotBeCalledAuthorisedWithIds extends StubAuthorisedWithIds with Results {
   override protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithIds[A]]] =
     Future failed new RuntimeException("AuthorisedWithIds should not be called in this situation")
 }
