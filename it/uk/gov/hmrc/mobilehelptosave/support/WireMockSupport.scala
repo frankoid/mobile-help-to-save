@@ -37,10 +37,11 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach with App
 
   protected def basicWireMockConfig(): WireMockConfiguration = wireMockConfig()
 
-  protected implicit lazy val wireMockServer: WireMockServer = {
-    val server = new WireMockServer(basicWireMockConfig().dynamicPort())
-    server.start()
-    server
+  protected implicit lazy val wireMockServer: WireMockServer = new WireMockServer(basicWireMockConfig().dynamicPort())
+
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
+    wireMockServer.start()
   }
 
   override protected def afterAll(): Unit = {

@@ -30,8 +30,8 @@ import uk.gov.hmrc.mobilehelptosave.support.{OneServerPerSuiteWsClient, WireMock
 class SandboxISpec extends WordSpec with Matchers
   with SchemaMatchers with TransactionTestData
   with FutureAwaits with DefaultAwaitTimeout
-  with WireMockSupport
-  with OneServerPerSuiteWsClient {
+  with OneServerPerSuiteWsClient
+  with WireMockSupport {
 
   override implicit lazy val app: Application = appBuilder.build()
 

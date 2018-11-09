@@ -25,7 +25,7 @@ import uk.gov.hmrc.mobilehelptosave.support.{OneServerPerSuiteWsClient, WireMock
 
 class ApiDefinitionISpec
   extends WordSpec with Matchers with Eventually with FutureAwaits with DefaultAwaitTimeout
-    with WireMockSupport with OneServerPerSuiteWsClient {
+    with OneServerPerSuiteWsClient with WireMockSupport {
 
   override protected def appBuilder: GuiceApplicationBuilder = super.appBuilder.configure(
       "microservice.services.service-locator.host" -> wireMockHost,

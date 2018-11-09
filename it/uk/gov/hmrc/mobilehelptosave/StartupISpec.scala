@@ -25,8 +25,9 @@ import uk.gov.hmrc.mobilehelptosave.support.{OneServerPerSuiteWsClient, WireMock
 
 class StartupISpec extends WordSpec with Matchers
   with FutureAwaits with DefaultAwaitTimeout
+  with OneServerPerSuiteWsClient
   with WireMockSupport
-  with OneServerPerSuiteWsClient with NumberVerification  {
+  with NumberVerification  {
 
   override implicit lazy val app: Application = appBuilder
     .build()
